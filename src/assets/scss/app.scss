@@ -18,3 +18,17 @@
 .timeline .timeline-item {
     padding-bottom: 1em;
 }
+
+.is-half-width {
+    @media screen and (min-width: 768px) and (max-width: 1280px) {
+        flex: none;
+        width: 50%;
+    }
+}
+
+.is-desktop-width {
+    @media screen and (min-width: 1280px) {
+        flex: none;
+        width: 30%;
+    }
+}

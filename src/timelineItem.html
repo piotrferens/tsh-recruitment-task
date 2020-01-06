@@ -9,24 +9,24 @@
                 </span>
                 {{#openedPullRequestEvent}}
                 <div>
-                    <a href="{{actor.url}}">{{actor.display_login}}</a>
+                    <a href="https://github.com/{{actor.login}}">{{actor.display_login}}</a>
                     <span>opened</span>
-                    <a href="{{payload.pull_request.url}}">pull request</a>
+                    <a href="{{payload.pull_request.html_url}}">pull request</a>
                 </div>
                 {{/openedPullRequestEvent}} {{#closedPullRequestEvent}}
                 <div>
-                    <a href="{{actor.url}}">{{actor.display_login}}</a>
+                    <a href="https://github.com/{{actor.login}}">{{actor.display_login}}</a>
                     <span>closed</span>
-                    <a href="{{payload.pull_request.url}}">pull request</a>
+                    <a href="{{payload.pull_request.html_url}}">pull request</a>
                 </div>
                 {{/closedPullRequestEvent}} {{#createdReviewCommentEvent}}
                 <div>
                     <span>created </span>
-                    <a href="{{payload.comment.url}}">
+                    <a href="{{payload.comment.html_url}}">
                         comment
                     </a>
                     <span>to </span>
-                    <a href="{{payload.pull_request.url}}">
+                    <a href="{{payload.pull_request.html_url}}">
                         pull request
                     </a>
                 </div>

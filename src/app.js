@@ -3,6 +3,7 @@ import $ from 'cash-dom'
 import Mustache from 'mustache'
 
 import timelineItemHTML from './timelineItem.html'
+import profileHTML from './profile.html'
 
 const searchInputValidation = /^[a-z0-9-_]{1,}$/
 
@@ -15,27 +16,30 @@ export class App {
             history: null
         }
 
-        this.searchInput = $('.username.input')
-        this.loadUserName = $('.load-username')
-        this.profileName = $('#profile-name')
-        this.profileImage = $('#profile-image')
-        this.profileUrl = $('#profile-url')
-        this.profileBio = $('#profile-bio')
-        this.timeline = $('.timeline')
+        this.$searchInput = $('.username-input')
+        this.$loadUsername = $('.load-username')
+        this.$profileName = $('.profile-name')
+        this.$profileImage = $('.profile-image')
+        this.$profileUrl = $('.profile-url')
+        this.$profileBio = $('.profile-bio')
+        this.$profile = $('.profile')
+        this.$timeline = $('.timeline')
+        this.$spinner = $('.search-username-spinner')
 
-        this.onLoadUserNameClick = this.onLoadUserNameClick.bind(this)
+        this.loadUser = this.loadUser.bind(this)
     }
 
     initializeApp() {
         this.initializeEvents()
+        this.loadUser('johnsmith')
     }
 
     initializeEvents() {
-        this.loadUserName.on('click', this.onLoadUserNameClick)
+        this.$loadUsername.on('click', () => this.loadUser(this.$searchInput.val()))
     }
 
-    fetchUserData(userName) {
-        return Promise.all([this.fetchUser(userName), this.fetchHistory(userName)]).then(
+    fetchUserData(username) {
+        return Promise.all([this.fetchUser(username), this.fetchHistory(username)]).then(
             ([user, history]) => ({
                 user,
                 history
@@ -43,50 +47,76 @@ export class App {
         )
     }
 
-    fetchUser(userName) {
-        return fetch('https://api.github.com/users/' + userName).then(response => response.json())
+    fetchUser(username) {
+        return fetch('https://api.github.com/users/' + username).then(response => response.json())
     }
 
-    fetchHistory(userName) {
-        return fetch(`https://api.github.com/users/${userName}/events/public`).then(response =>
+    fetchHistory(username) {
+        return fetch(`https://api.github.com/users/${username}/events/public`).then(response =>
             response.json()
         )
     }
 
-    hideInputError() {
-        this.searchInput.removeClass('is-danger')
+    startSpinner() {
+        this.$spinner.removeClass('is-hidden')
+    }
+
+    stopSpinner() {
+        this.$spinner.addClass('is-hidden')
     }
 
     showInputError() {
-        this.searchInput.addClass('is-danger')
+        this.$searchInput.addClass('is-danger')
     }
 
-    onLoadUserNameClick() {
-        let userName = this.searchInput.val()
-        const isInputValid = searchInputValidation.test(userName)
+    hideInputError() {
+        this.$searchInput.removeClass('is-danger')
+    }
+
+    showProfile() {
+        this.$profile.removeClass('is-hidden')
+    }
+
+    hideProfile() {
+        this.$profile.addClass('is-hidden')
+    }
+
+    showHistory() {
+        this.$timeline.removeClass('is-hidden')
+    }
+
+    hideHistory() {
+        this.$timeline.addClass('is-hidden')
+    }
+
+    onLoadUsernameStart() {
+        this.startSpinner()
+        this.hideInputError()
+        this.hideProfile()
+        this.hideHistory()
+    }
+
+    onLoadUsernameEnd() {
+        this.stopSpinner()
+        this.updateProfile()
+        this.updateHistory()
+        this.showProfile()
+        this.showHistory()
+    }
+
+    loadUser(username) {
+        const isInputValid = searchInputValidation.test(username)
 
         if (isInputValid) {
-            this.hideInputError()
-            this.fetchUserData(userName).then(body => {
+            this.onLoadUsernameStart()
+            this.fetchUserData(username).then(body => {
                 this.state.profile = body.user
                 this.state.history = body.history
-                this.updateProfile()
-                this.updateHistory()
+                this.onLoadUsernameEnd()
             })
         } else {
             this.showInputError()
         }
-    }
-
-    updateProfile() {
-        this.profileName.text(this.searchInput.val())
-        this.profileImage.attr('src', this.state.profile.avatar_url)
-        this.profileUrl.attr('href', this.state.profile.html_url).text(this.state.profile.login)
-        this.profileBio.text(this.state.profile.bio || '(no information)')
-    }
-
-    buildTimelineItem(timelineItemData) {
-        return Mustache.render(timelineItemHTML, timelineItemData)
     }
 
     handlePullRequestEvent(timelineItemData) {
@@ -103,8 +133,29 @@ export class App {
         }
     }
 
+    buildTimelineItem(timelineItemData) {
+        return Mustache.render(timelineItemHTML, timelineItemData)
+    }
+
+    buildProfile(profileData) {
+        return Mustache.render(profileHTML, profileData)
+    }
+
+    updateProfile() {
+        this.$profile.empty()
+        this.$profile.append(
+            this.buildProfile({
+                name: this.state.profile.name,
+                login: this.state.profile.login,
+                image: this.state.profile.avatar_url,
+                url: this.state.profile.login,
+                bio: this.state.profile.bio || '(no information)'
+            })
+        )
+    }
+
     updateHistory() {
-        this.timeline.empty()
+        this.$timeline.empty()
 
         const supportedItems = this.state.history.filter(timelineItem =>
             historyTypesSupported.includes(timelineItem.type)
@@ -114,11 +165,10 @@ export class App {
             if (timelineItem.type === 'PullRequestEvent') {
                 this.handlePullRequestEvent(timelineItem)
             } else if (timelineItem.type === 'PullRequestReviewCommentEvent') {
-                console.log(timelineItem)
                 this.handlePullRequestReviewCommentEvent(timelineItem)
             }
 
-            this.timeline.append(this.buildTimelineItem(timelineItem))
+            this.$timeline.append(this.buildTimelineItem(timelineItem))
         })
     }
 }

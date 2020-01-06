@@ -154,6 +154,14 @@ export class App {
         )
     }
 
+    formatDate(date) {
+        return new Intl.DateTimeFormat('en-US', {
+            month: 'short',
+            day: 'numeric',
+            year: 'numeric'
+        }).format(new Date(date))
+    }
+
     updateHistory() {
         this.$timeline.empty()
 
@@ -162,6 +170,7 @@ export class App {
         )
 
         supportedItems.forEach(timelineItem => {
+            timelineItem.created_at = this.formatDate(timelineItem.created_at)
             if (timelineItem.type === 'PullRequestEvent') {
                 this.handlePullRequestEvent(timelineItem)
             } else if (timelineItem.type === 'PullRequestReviewCommentEvent') {

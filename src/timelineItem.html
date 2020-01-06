@@ -1,0 +1,40 @@
+<div class="timeline-item">
+    <div class="timeline-marker"></div>
+    <div class="timeline-content">
+        <p class="heading">{{created_at}}</p>
+        <div class="content">
+            <div class="is-flex">
+                <span class="gh-username">
+                    <img src="{{actor.avatar_url}}" />
+                </span>
+                {{#openedPullRequestEvent}}
+                <div>
+                    <a href="{{actor.url}}">{{actor.display_login}}</a>
+                    <span>opened</span>
+                    <a href="{{payload.pull_request.url}}">pull request</a>
+                </div>
+                {{/openedPullRequestEvent}} {{#closedPullRequestEvent}}
+                <div>
+                    <a href="{{actor.url}}">{{actor.display_login}}</a>
+                    <span>closed</span>
+                    <a href="{{payload.pull_request.url}}">pull request</a>
+                </div>
+                {{/closedPullRequestEvent}} {{#createdReviewCommentEvent}}
+                <div>
+                    <span>created </span>
+                    <a href="{{payload.comment.url}}">
+                        comment
+                    </a>
+                    <span>to </span>
+                    <a href="{{payload.pull_request.url}}">
+                        pull request
+                    </a>
+                </div>
+                {{/createdReviewCommentEvent}}
+            </div>
+            <p class="repo-name">
+                <a href="https://github.com/{{repo.name}}">{{repo.name}}</a>
+            </p>
+        </div>
+    </div>
+</div>
